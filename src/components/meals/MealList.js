@@ -1,184 +1,196 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Table, 
-    TableBody, 
-    TableCell, 
-    TableContainer, 
-    TableHead, 
-    TableRow, 
-    Paper, 
-    Button, 
-    Dialog, 
-    DialogTitle, 
-    DialogContent, 
-    TextField, 
-    Select, 
-    MenuItem, 
-    FormControl, 
-    InputLabel 
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    IconButton,
+    Button,
+    Box,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions
 } from '@mui/material';
+import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { mealService } from '../../services/mealService';
+import CreateMeal from './CreateMeal';
+
+// Inline ConfirmDialog component 
+const ConfirmDialog = ({ open, title, content, onConfirm, onCancel }) => {
+    return (
+        <Dialog
+            open={open}
+            onClose={onCancel}
+            aria-labelledby="confirm-dialog-title"
+            aria-describedby="confirm-dialog-description"
+        >
+            <DialogTitle id="confirm-dialog-title">{title}</DialogTitle>
+            <DialogContent>
+                <DialogContentText id="confirm-dialog-description">
+                    {content}
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onCancel} color="primary">
+                    Cancel
+                </Button>
+                <Button onClick={onConfirm} color="error" autoFocus>
+                    Confirm
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
+};
 
 const MealList = () => {
     const [meals, setMeals] = useState([]);
-    const [openDialog, setOpenDialog] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [createDialogOpen, setCreateDialogOpen] = useState(false);
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
     const [selectedMeal, setSelectedMeal] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
+
+    const fetchMeals = async () => {
+        try {
+            setLoading(true);
+            const data = await mealService.getAllMeals();
+            setMeals(data);
+        } catch (error) {
+            console.error('Failed to fetch meals', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         fetchMeals();
     }, []);
 
-    const fetchMeals = async () => {
-        try {
-            const mealData = await mealService.getAllMeals();
-            setMeals(mealData);
-        } catch (error) {
-            console.error('Failed to fetch meals', error);
-        }
+    const handleOpenCreateDialog = () => {
+        setSelectedMeal(null);
+        setIsEditing(false);
+        setCreateDialogOpen(true);
     };
 
-    const handleDeleteMeal = async (mealId) => {
+    const handleCloseCreateDialog = () => {
+        setCreateDialogOpen(false);
+        setSelectedMeal(null);
+        setIsEditing(false);
+    };
+
+    const handleOpenEditDialog = (meal) => {
+        console.log("Opening edit dialog with meal:", meal);
+        // Make sure the meal has an id
+        if (!meal || !meal.id) {
+            console.error("Cannot edit meal without ID:", meal);
+            return;
+        }
+        setSelectedMeal(meal);
+        setIsEditing(true);
+        setCreateDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = (meal) => {
+        setSelectedMeal(meal);
+        setConfirmDialogOpen(true);
+    };
+
+    const handleDeleteCancel = () => {
+        setConfirmDialogOpen(false);
+        setSelectedMeal(null);
+    };
+
+    const handleDeleteMeal = async () => {
         try {
-            await mealService.deleteMeal(mealId);
-            fetchMeals();
+            if (selectedMeal && selectedMeal.id) {
+                await mealService.deleteMeal(selectedMeal.id);
+                fetchMeals();
+                setConfirmDialogOpen(false);
+                setSelectedMeal(null);
+            } else {
+                console.error("Cannot delete meal without ID");
+            }
         } catch (error) {
             console.error('Failed to delete meal', error);
         }
     };
 
-    const handleOpenEditDialog = (meal) => {
-        setSelectedMeal(meal);
-        setOpenDialog(true);
-    };
-
-    const handleCloseDialog = () => {
-        setOpenDialog(false);
-        setSelectedMeal(null);
-    };
-
-    const handleUpdateMeal = async () => {
-        try {
-            await mealService.updateMeal(selectedMeal.id, selectedMeal);
-            fetchMeals();
-            handleCloseDialog();
-        } catch (error) {
-            console.error('Failed to update meal', error);
-        }
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
     };
 
     return (
         <div>
-            <Button 
-                variant="contained" 
-                color="primary"
-                onClick={() => {
-                    setSelectedMeal({
-                        mealType: '',
-                        menuItems: '',
-                        mealDate: new Date().toISOString().split('T')[0]
-                    });
-                    setOpenDialog(true);
-                }}
-            >
-                Create New Meal
-            </Button>
+            <Box sx={{ mb: 2 }}>
+                <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={handleOpenCreateDialog}
+                >
+                    Create New Meal
+                </Button>
+            </Box>
 
-            <TableContainer component={Paper}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>ID</TableCell>
-                            <TableCell>Meal Type</TableCell>
-                            <TableCell>Menu Items</TableCell>
-                            <TableCell>Meal Date</TableCell>
-                            <TableCell>Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {meals.map((meal) => (
-                            <TableRow key={meal.id}>
-                                <TableCell>{meal.id}</TableCell>
-                                <TableCell>{meal.mealType}</TableCell>
-                                <TableCell>{meal.menuItems}</TableCell>
-                                <TableCell>{meal.mealDate}</TableCell>
-                                <TableCell>
-                                    <Button 
-                                        variant="contained" 
-                                        color="primary"
-                                        onClick={() => handleOpenEditDialog(meal)}
-                                    >
-                                        Edit
-                                    </Button>
-                                    <Button 
-                                        variant="contained" 
-                                        color="error"
-                                        onClick={() => handleDeleteMeal(meal.id)}
-                                    >
-                                        Delete
-                                    </Button>
-                                </TableCell>
+            {loading ? (
+                <p>Loading meals...</p>
+            ) : (
+                <TableContainer component={Paper}>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Date</TableCell>
+                                <TableCell>Meal Type</TableCell>
+                                <TableCell>Menu Items</TableCell>
+                                <TableCell>Actions</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                        </TableHead>
+                        <TableBody>
+                            {meals.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={4} align="center">No meals found</TableCell>
+                                </TableRow>
+                            ) : (
+                                meals.map((meal) => (
+                                    <TableRow key={meal.id}>
+                                        <TableCell>{formatDate(meal.mealDate)}</TableCell>
+                                        <TableCell>{meal.mealType}</TableCell>
+                                        <TableCell>{meal.menuItems}</TableCell>
+                                        <TableCell>
+                                            <IconButton onClick={() => handleOpenEditDialog(meal)}>
+                                                <EditIcon />
+                                            </IconButton>
+                                            <IconButton onClick={() => handleDeleteConfirm(meal)}>
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            )}
 
-            {/* Meal Dialog */}
-            <Dialog open={openDialog} onClose={handleCloseDialog}>
-                <DialogTitle>
-                    {selectedMeal?.id ? 'Edit Meal' : 'Create New Meal'}
-                </DialogTitle>
-                <DialogContent>
-                    {selectedMeal && (
-                        <>
-                            <FormControl fullWidth>
-                                <InputLabel>Meal Type</InputLabel>
-                                <Select
-                                    value={selectedMeal.mealType}
-                                    label="Meal Type"
-                                    onChange={(e) => setSelectedMeal({
-                                        ...selectedMeal, 
-                                        mealType: e.target.value
-                                    })}
-                                >
-                                    <MenuItem value="BREAKFAST">Breakfast</MenuItem>
-                                    <MenuItem value="LUNCH">Lunch</MenuItem>
-                                    <MenuItem value="DINNER">Dinner</MenuItem>
-                                </Select>
-                            </FormControl>
-                            <TextField
-                                label="Menu Items"
-                                fullWidth
-                                value={selectedMeal.menuItems}
-                                onChange={(e) => setSelectedMeal({
-                                    ...selectedMeal, 
-                                    menuItems: e.target.value
-                                })}
-                            />
-                            <TextField
-                                label="Meal Date"
-                                type="date"
-                                fullWidth
-                                value={selectedMeal.mealDate}
-                                onChange={(e) => setSelectedMeal({
-                                    ...selectedMeal, 
-                                    mealDate: e.target.value
-                                })}
-                                InputLabelProps={{
-                                    shrink: true,
-                                }}
-                            />
-                            <Button 
-                                variant="contained" 
-                                color="primary"
-                                onClick={handleUpdateMeal}
-                            >
-                                {selectedMeal.id ? 'Update' : 'Create'}
-                            </Button>
-                        </>
-                    )}
-                </DialogContent>
-            </Dialog>
+            <CreateMeal
+                open={createDialogOpen}
+                onClose={handleCloseCreateDialog}
+                onSuccess={fetchMeals}
+                initialData={isEditing ? selectedMeal : null}
+            />
+
+            <ConfirmDialog
+                open={confirmDialogOpen}
+                title="Delete Meal"
+                content="Are you sure you want to delete this meal?"
+                onConfirm={handleDeleteMeal}
+                onCancel={handleDeleteCancel}
+            />
         </div>
     );
 };

@@ -77,7 +77,7 @@ const MessPlanList = () => {
                             <TableRow key={plan.id}>
                                 <TableCell>{plan.name}</TableCell>
                                 <TableCell>{plan.totalDays}</TableCell>
-                                <TableCell>${plan.price.toFixed(2)}</TableCell>
+                                <TableCell>₹{plan.price.toFixed(2)}</TableCell>
                                 <TableCell>
                                     <Button 
                                         variant="contained" 

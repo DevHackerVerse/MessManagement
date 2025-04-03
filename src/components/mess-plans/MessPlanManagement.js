@@ -113,7 +113,7 @@ const MessPlanManagement = () => {
                                     <TableCell>{plan.id}</TableCell>
                                     <TableCell>{plan.name}</TableCell>
                                     <TableCell>{plan.totalDays}</TableCell>
-                                    <TableCell>${plan.price.toFixed(2)}</TableCell>
+                                    <TableCell>₹{plan.price.toFixed(2)}</TableCell>
                                     <TableCell>
                                         <Button 
                                             variant="contained" 

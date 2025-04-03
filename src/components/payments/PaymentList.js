@@ -119,7 +119,7 @@ const PaymentList = () => {
                                 <TableRow key={payment.id}>
                                     <TableCell>{payment.userId}</TableCell>
                                     <TableCell>{payment.userName}</TableCell>
-                                    <TableCell>${payment.amount.toFixed(2)}</TableCell>
+                                    <TableCell>₹{payment.amount.toFixed(2)}</TableCell>
                                     <TableCell>{payment.utrNumber}</TableCell>
                                     <TableCell>
                                         {formatDate(payment.paymentDate)}

@@ -63,6 +63,30 @@ const FeedbackManagement = () => {
         }
     };
 
+    const formatDate = (dateArray) => {
+        if (!Array.isArray(dateArray) || dateArray.length < 6) return 'N/A';
+    
+        try {
+            // Backend returns [year, month, day, hour, minute, second, nanoseconds]
+            const [year, month, day, hour, minute, second] = dateArray;
+    
+            // JavaScript months are 0-based, so subtract 1 from the month
+            const date = new Date(year, month - 1, day, hour, minute, second);
+    
+            return new Intl.DateTimeFormat('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            }).format(date);
+        } catch (error) {
+            console.error('Date formatting error:', error);
+            return 'Invalid Date';
+        }
+    };
+
     return (
         <div>
             <TableContainer component={Paper}>
@@ -84,7 +108,7 @@ const FeedbackManagement = () => {
                                 <TableCell>{feedback.userName}</TableCell>
                                 <TableCell>{feedback.message}</TableCell>
                                 <TableCell>
-                                    {new Date(feedback.createdAt).toLocaleString()}
+                                    {formatDate(feedback.createdAt)}
                                 </TableCell>
                                 <TableCell>
                                     <Chip 
