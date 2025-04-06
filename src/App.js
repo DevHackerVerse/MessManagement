@@ -8,6 +8,7 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './components/dashboard/Dashboard';
 import UserList from './components/users/UserList';
+import UserManagement from './components/users/UserManagement';
 import MealList from './components/meals/MealList';
 import PaymentVerification from './components/payments/PaymentVerification';
 import PaymentList from './components/payments/PaymentList';
@@ -15,6 +16,7 @@ import FeedbackManagement from './components/feedbacks/FeedbackManagement';
 import FeedbackList from './components/feedbacks/FeedbackList'
 import MessPlanManagement from './components/mess-plans/MessPlanManagement';
 import Layout from './components/common/Layout';
+import Header from './components/common/Header';
 import PrivateRoute from './components/common/PrivateRoute';
 
 // Create Material-UI Theme
@@ -51,7 +53,8 @@ function App() {
                             element={
                                 <Layout>
                                     <PrivateRoute>
-                                        <UserList />
+                                        
+                                        <UserList/>
                                     </PrivateRoute>
                                 </Layout>
                             } 
@@ -82,7 +85,6 @@ function App() {
                             element={
                                 <Layout>
                                     <PrivateRoute>
-                                        <FeedbackManagement />
                                         <FeedbackList />
                                     </PrivateRoute>
                                 </Layout>
